@@ -33,7 +33,7 @@ app.post('/api/grant-role-minter', async (req, res)=>{
   try {
     const {account, amount} = req.body;
     
-    sendTransact(contract.methods.grantRoleMinter, [account, amount]);
+    sendTransact(contract.methods.grantRoleMinter, [account, Number(amount)]);
 
     res.json({
       result: true
@@ -50,7 +50,7 @@ app.post('/api/mint', async (req, res)=>{
   try {
     const {to, amount} = req.body;
 
-    sendTransact(contract.methods.mint, [to, amount]);
+    sendTransact(contract.methods.mint, [to, Number(amount)]);
 
     res.json({
       result: true
