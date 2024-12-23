@@ -21,19 +21,18 @@ const signer = web3.eth.accounts.privateKeyToAccount(process.env.PRIVATE_KEY);
 web3.eth.accounts.wallet.add(signer);
 web3.eth.defaultAccount = signer.address;
 
-const sendTransact = async (method, params) => {
+const sendTransactAdmin = async (method, params) => {
     const gasPrice = await web3.eth.getGasPrice();
     var tx = {from : signer.address, to : contractAddress , gas : 500000, gasPrice : gasPrice, data : method(...params).encodeABI()};
     var signedTx = await web3.eth.accounts.signTransaction(tx, signer.privateKey);
-    var sentTx = await web3.eth.sendSignedTransaction(signedTx.raw || signedTx.rawTransaction);
-    return sentTx;
+    await web3.eth.sendSignedTransaction(signedTx.raw || signedTx.rawTransaction);
 }
 
 app.post('/api/grant-role-minter', async (req, res)=>{
   try {
     const {account, amount} = req.body;
     
-    sendTransact(contract.methods.grantRoleMinter, [account, Number(amount)]);
+    await sendTransactAdmin(contract.methods.grantRoleMinter, [account, Number(amount)]);
 
     res.json({
       result: true
@@ -46,11 +45,17 @@ app.post('/api/grant-role-minter', async (req, res)=>{
   }
 });
 
+const sendTransactMinter = async (to, method, params) => {
+  method(...params).send({
+    from: to
+  });
+}
+
 app.post('/api/mint', async (req, res)=>{
   try {
     const {to, amount} = req.body;
 
-    sendTransact(contract.methods.mint, [to, Number(amount)]);
+    await sendTransactMinter(to, contract.methods.mint, [to, Number(amount)]);
 
     res.json({
       result: true
